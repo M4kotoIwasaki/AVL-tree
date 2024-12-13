@@ -3,7 +3,7 @@ namespace AVL_tree;
 public class Node //класс узла дерева
 {
     public Key Key;
-    private int Count;
+    public int Count;
     public Node Left;
     public Node Right;
     public int Balance;
@@ -24,19 +24,19 @@ public class Key //класс ключа дерева
         Time = new TimeClass(hours, minutes);
     }
 
-    public int CompareTo(Key other) //метод сравнения ключей по ФИО / времени
+    public int getValue(Key key) //метод сравнения ключей по ФИО / времени
     {
-        if (other == null)
-            return 1;
+        if (key == null)
+            return 0;
         
-        int nameComparison = String.Compare(FullName, other.FullName, StringComparison.Ordinal);
-        if (nameComparison != 0)
-            return nameComparison;
+        int fullnameValue = String.Compare(FullName, key.FullName, StringComparison.Ordinal);
+        if (fullnameValue != 0)
+            return fullnameValue;
         
-        if (Time.Hours != other.Time.Hours)
-            return Time.Hours.CompareTo(other.Time.Hours);
+        if (Time.Hours != key.Time.Hours)
+            return Time.Hours.CompareTo(key.Time.Hours);
         
-        return Time.Minutes.CompareTo(other.Time.Minutes);
+        return Time.Minutes.CompareTo(key.Time.Minutes);
     }
 }
 
@@ -52,170 +52,253 @@ public class TimeClass // Класс времни
     }
 }
 
-public class Tree // Класс дерева
+public class Tree
 {
-    public Node Root;
-
-    private bool HeightIncreased;
-
-    public Node Search(Node node, Key key)
+    private void Search(Key key, ref Node p, ref bool h) // Метод поиска и вставки в AVL-дерево
     {
-        if (node == null)
+        if (p == null)
         {
-            HeightIncreased = true;
-            return new Node(key);
-        }
-
-        if (key.CompareTo(node.Key) < 0)
-        {
-            node.Left = Search(node.Left, key);
-
-            if (HeightIncreased)
+            // Вставка нового узла, если текущий узел равен null
+            p = new Node(key)
             {
-                switch (node.Balance)
+                Key = key,
+                Count = 1,
+                Left = null,
+                Right = null,
+                Balance = 0
+            };
+            h = true; // Высота дерева увеличилась
+        }
+        else if (key < p.Key)
+        {
+            // Рекурсивный поиск в левом поддереве
+            Search(key, ref p.Left, ref h);
+
+            if (h)
+            {
+                // Левая ветвь выросла
+                if (p.Balance == 1)
                 {
-                    case 1:
-                        node.Balance = 0;
-                        HeightIncreased = false;
-                        break;
-                    case 0:
-                        node.Balance = -1;
-                        break;
-                    case -1:
-                        node = BalanceLeft(node);
-                        HeightIncreased = false;
-                        break;
+                    p.Balance = 0;
+                    h = false;
+                }
+                else if (p.Balance == 0)
+                {
+                    p.Balance = -1;
+                }
+                else
+                {
+                    // Баланс = -1: требуется восстановление баланса
+                    Node p1 = p.Left;
+
+                    if (p1.Balance == -1)
+                    {
+                        // Одиночная LL-ротация
+                        p.Left = p1.Right;
+                        p1.Right = p;
+                        p.Balance = 0;
+                        p = p1;
+                    }
+                    else
+                    {
+                        // Двойная LR-ротация
+                        Node p2 = p1.Right;
+                        p1.Right = p2.Left;
+                        p2.Left = p1;
+                        p.Left = p2.Right;
+                        p2.Right = p;
+
+                        // Обновление балансов
+                        p.Balance = (p2.Balance == -1) ? 1 : 0;
+                        p1.Balance = (p2.Balance == 1) ? -1 : 0;
+                        p = p2;
+                    }
+
+                    p.Balance = 0;
+                    h = false;
                 }
             }
         }
-        else if (key.CompareTo(node.Key) > 0)
+        else if (key > p.Key)
         {
-            node.Right = Search(node.Right, key);
+            // Рекурсивный поиск в правом поддереве
+            Search(key, ref p.Right, ref h);
 
-            if (HeightIncreased)
+            if (h)
             {
-                switch (node.Balance)
+                // Правая ветвь выросла
+                if (p.Balance == -1)
                 {
-                    case 1:
-                        node = BalanceRight(node);
-                        HeightIncreased = false;
-                        break;
-                    case 0:
-                        node.Balance = 1;
-                        break;
-                    case -1:
-                        node.Balance = 0;
-                        HeightIncreased = false;
-                        break;
+                    p.Balance = 0;
+                    h = false;
+                }
+                else if (p.Balance == 0)
+                {
+                    p.Balance = 1;
+                }
+                else
+                {
+                    // Баланс = +1: требуется восстановление баланса
+                    Node p1 = p.Right;
+
+                    if (p1.Balance == 1)
+                    {
+                        // Одиночная RR-ротация
+                        p.Right = p1.Left;
+                        p1.Left = p;
+                        p.Balance = 0;
+                        p = p1;
+                    }
+                    else
+                    {
+                        // Двойная RL-ротация
+                        Node p2 = p1.Left;
+                        p1.Left = p2.Right;
+                        p2.Right = p1;
+                        p.Right = p2.Left;
+                        p2.Left = p;
+
+                        // Обновление балансов
+                        p.Balance = (p2.Balance == 1) ? -1 : 0;
+                        p1.Balance = (p2.Balance == -1) ? 1 : 0;
+                        p = p2;
+                    }
+
+                    p.Balance = 0;
+                    h = false;
                 }
             }
         }
         else
         {
-            HeightIncreased = false;
+            // Ключ уже существует, увеличиваем счетчик
+            p.Count++;
         }
-        return node;
     }
 
-    public void Insert(Key key)
-    {
-        Root = Search(Root, key);
-    }
 
-    private Node BalanceLeft(Node node)
+    private void BalanceLeft(ref Node p, ref bool h)
     {
-        Node left = node.Left;
-
-        if (left.Balance == -1)
+        if (p.Balance == -1)
         {
-            // LL
-            node = RotateRight(node);
-            node.Balance = 0;
-            node.Right.Balance = 0;
+            // уменьшилась левая ветвь
+            p.Balance = 0;
+        }
+        else if (p.Balance == 0)
+        {
+            p.Balance = 1;
+            h = false;
         }
         else
         {
-            // LR
-            Node leftRight = left.Right;
-            node.Left = RotateLeft(left);
-            node = RotateRight(node);
-            
-            if (leftRight.Balance == -1)
+            // восстановить баланс
+            Node p1 = p.Right;
+
+            if (p1.Balance >= 0)
             {
-                node.Right.Balance = 1;
-                node.Left.Balance = 0;
-            }
-            else if (leftRight.Balance == 1)
-            {
-                node.Right.Balance = 0;
-                node.Left.Balance = -1;
+                // одиночная RR-ротация
+                p.Right = p1.Left;
+                p1.Left = p;
+
+                if (p1.Balance == 0)
+                {
+                    p.Balance = 1;
+                    p1.Balance = -1;
+                    h = false;
+                }
+                else
+                {
+                    p.Balance = 0;
+                    p1.Balance = 0;
+                }
+
+                p = p1;
             }
             else
             {
-                node.Right.Balance = 0;
-                node.Left.Balance = 0;
+                // Двойная RL ротация
+                Node p2 = p1.Left;
+                p1.Left = p2.Right;
+                p2.Right = p1;
+                p.Right = p2.Left;
+                p2.Left = p;
+                
+                if (p2.Balance == +1)
+                    p.Balance = -1;
+                else
+                    p.Balance = 0;
+
+                if (p2.Balance == -1)
+                    p1.Balance = 1;
+                else
+                    p1.Balance = 0;
+
+                p = p2;
+                p2.Balance = 0;
             }
-
-            node.Balance = 0;
         }
-
-        return node;
     }
-    
-    private Node BalanceRight(Node node)
-    {
-        Node right = node.Right;
 
-        if (right.Balance == 1)
+    private void BalanceRight(ref Node p, ref bool h)
+    {
+        if (p.Balance == 1)
         {
-            // RR
-            node = RotateLeft(node);
-            node.Balance = 0;
-            node.Left.Balance = 0;
+            // уменьшилась правая ветвь
+            p.Balance = 0;
+        }
+        else if (p.Balance == 0)
+        {
+
+            p.Balance = -1;
+            h = false;
         }
         else
         {
-            // RL
-            Node rightLeft = right.Left;
-            node.Right = RotateRight(right);
-            node = RotateLeft(node);
+            // rebalance
+            Node p1 = p.Left;
 
-            if (rightLeft.Balance == 1)
+            if (p1.Balance <= 0)
             {
-                node.Left.Balance = -1;
-                node.Right.Balance = 0;
-            }
-            else if (rightLeft.Balance == -1)
-            {
-                node.Left.Balance = 0;
-                node.Right.Balance = 1;
+                // Одиночная LL ротация
+                p.Left = p1.Right;
+                p1.Right = p;
+
+                if (p1.Balance == 0)
+                {
+                    p.Balance = -1;
+                    p1.Balance = 1;
+                    h = false;
+                }
+                else
+                {
+                    p.Balance = 0;
+                    p1.Balance = 0;
+                }
+
+                p = p1;
             }
             else
             {
-                node.Left.Balance = 0;
-                node.Right.Balance = 0;
+                // Двойная LR ротация
+                Node p2 = p1.Right;
+                p1.Right = p2.Left;
+                p2.Left = p1;
+                p.Left = p2.Right;
+                p2.Right = p;
+                
+                if (p2.Balance == -1)
+                    p.Balance = 1;
+                else
+                    p.Balance = 0;
+
+                if (p2.Balance == +1)
+                    p1.Balance = -1;
+                else
+                    p1.Balance = 0;
+
+                p = p2;
+                p2.Balance = 0;
             }
-
-            node.Balance = 0;
         }
-
-        return node;
     }
-    
-    private Node RotateRight(Node node) // Правый поворот
-    {
-        Node newRoot = node.Left;
-        node.Left = newRoot.Right;
-        newRoot.Right = node;
-        return newRoot;
-    }
-    
-    private Node RotateLeft(Node node) // Левый поворот
-    {
-        Node newRoot = node.Right;
-        node.Right = newRoot.Left;
-        newRoot.Left = node;
-        return newRoot;
-    }
-    
 }
