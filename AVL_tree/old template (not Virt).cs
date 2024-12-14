@@ -66,7 +66,7 @@
     public void Insert(Key key)
     {
         Root = Search(Root, key);
-    }*/
+    }*/Ы
 
 
 /*private Node RotateRight(Node node) // Правый поворот
