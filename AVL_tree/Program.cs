@@ -21,9 +21,9 @@ using System.Reflection.Metadata.Ecma335;
 
 public class Program
 {
-    private static Tree tree; // Сделано статическим для использования в статических методах
+    private static Tree tree;
 
-    private static void SuccessMessage() // Success message image
+    private static void SuccessMessage()
     {
         Console.Clear();
         Console.WriteLine("\n\t\t--------------");
@@ -31,7 +31,7 @@ public class Program
         Console.WriteLine("\t\t--------------\n");
     }
 
-    private static void ShowError(string errorMessage) // Error message image
+    private static void ShowError(string errorMessage)
     {
         Console.Clear();
         Console.WriteLine("\n\t\t-----------");
@@ -48,7 +48,7 @@ public class Program
             Console.WriteLine("1. Создать дерево");
             Console.WriteLine("2. Добавить элемент в дерево");
             Console.WriteLine("3. Удалить заданный элемент (минимальный справа)");
-            //Console.WriteLine("4. Поиск заданного элемента");
+            Console.WriteLine("4. Поиск заданного элемента");
             Console.WriteLine("5. Печать дерева");
             Console.WriteLine("6. Обход слева направо");
             Console.WriteLine("7. Освобождение памяти");
@@ -75,7 +75,114 @@ public class Program
                     SuccessMessage();
                     break;
                 case 3:
-                    Key yourKey = new Key(FIO name1, TimeClass time1)
+                    Console.WriteLine("Введите фамилию: ");
+                    string secondNameForFio = Console.ReadLine();
+                    Console.WriteLine("Введите имя: ");
+                    string nameForFIO = Console.ReadLine();
+                    Console.WriteLine("Введите отчество: ");
+                    string surnameForFio = Console.ReadLine();
+                    FIO name = new FIO(secondNameForFio, nameForFIO, surnameForFio);
+                    bool isValidTime = false;
+                    int hours = 0;
+                    int minutes = 0;
+                    while (!isValidTime)
+                    {
+                        Console.WriteLine("Введите часы: ");
+                        string hoursInput = Console.ReadLine();
+                        Console.WriteLine("Введите минуты: ");
+                        string minutesInput = Console.ReadLine();
+                        if (int.TryParse(hoursInput, out hours) && int.TryParse(minutesInput, out minutes))
+                        {
+                            if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59)
+                            {
+                                isValidTime = true;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Ошибка формата.");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка данных.");
+                        }
+                    }
+                    Console.WriteLine("Введите номер строки: ");
+                    string userValue = Console.ReadLine();
+                    if (int.TryParse(userValue, out int valueNumber))
+                    {
+                        if (valueNumber < 1)
+                        {
+                            Console.WriteLine("Ошибка, некорректный номер.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ошибка, введено некорректное значение. Введите число.");
+                    }
+                    TimeClass time = new TimeClass(hours, minutes);
+                    Key userKey = new Key(name, time);
+                    bool h = false;
+                    tree.DeleteMinimalRight(ref tree.Root, userKey, valueNumber, ref h);
+                    SuccessMessage();
+                    name = null;
+                    time = null;
+                    userKey = null;
+                    break;
+                case 4:
+                    Console.WriteLine("Введите фамилию: ");
+                    secondNameForFio = Console.ReadLine();
+                    Console.WriteLine("Введите имя: ");
+                    nameForFIO = Console.ReadLine();
+                    Console.WriteLine("Введите отчество: ");
+                    surnameForFio = Console.ReadLine();
+                    name = new FIO(secondNameForFio, nameForFIO, surnameForFio);
+                    isValidTime = false;
+                    hours = 0;
+                    minutes = 0;
+                    while (!isValidTime)
+                    {
+                        Console.WriteLine("Введите часы: ");
+                        string hoursInput = Console.ReadLine();
+                        Console.WriteLine("Введите минуты: ");
+                        string minutesInput = Console.ReadLine();
+                        if (int.TryParse(hoursInput, out hours) && int.TryParse(minutesInput, out minutes))
+                        {
+                            if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59)
+                            {
+                                isValidTime = true;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Ошибка формата.");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка данных.");
+                        }
+                    }
+                    Console.WriteLine("Введите номер строки: ");
+                    userValue = Console.ReadLine();
+                    if (int.TryParse(userValue, out valueNumber))
+                    {
+                        if (valueNumber < 1)
+                        {
+                            Console.WriteLine("Ошибка, некорректный номер.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ошибка, введено некорректное значение. Введите число.");
+                    }
+                    time = new TimeClass(hours, minutes);
+                    userKey = new Key(name, time);
+                    tree.FindElement(tree.Root, name, time, valueNumber);
+                        //SuccessMessage();
+                    name = null;
+                    time = null;
+                    userKey = null;
+                    break;
                 case 5:
                     try
                     {
@@ -111,8 +218,7 @@ public class Program
             Console.ReadKey();
         }
     }
-
-    // Инициализация дерева
+    
     public static void InitializeTree()
     {
         MemoryFree(tree);
@@ -151,38 +257,32 @@ public class Program
         {
             throw new FileNotFoundException("Файл не найден.", filePath);
         }
-
-        // Инициализируем дерево
+        
         InitializeTree();
-
-        // Считываем строки из файла
+        
         string[] lines = File.ReadAllLines(filePath);
         int lineNumber = 1;
         
-        // Построчно проходимся по каждой строке
         foreach (string line in lines)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(line)) // Пропускаем пустые строки
+                if (string.IsNullOrWhiteSpace(line))
                 {
                     lineNumber++;
                     continue;
                 }
-
-                // Разбиваем строку на части по пробелу
+                
                 string[] parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length != 4) //
                 {
                     throw new FormatException($"Неверный формат строки {lineNumber}.");
                 }
-
-                // Извлекаем ФИО
+                
                 string secondName = parts[0];
                 string firstName = parts[1];
                 string surname = parts[2];
-
-                // Проверяем корректность времени
+                
                 string[] timeParts = parts[3].Split(':');
                 if (timeParts.Length != 2 ||
                     !int.TryParse(timeParts[0], out int hours) ||
@@ -192,13 +292,11 @@ public class Program
                 {
                     throw new FormatException($"Неверный формат времени в строке {lineNumber}: {parts[3]}");
                 }
-
-                // Создаем ключ
+                
                 FIO name = new FIO(secondName, firstName, surname);
                 TimeClass time = new TimeClass(hours, minutes);
                 Key key = new Key(name, time);
-
-                // Добавляем ключ в дерево
+                
                 bool heightChanged = false;
                 tree.Search(key, ref tree.Root, ref heightChanged, lineNumber);
             }
@@ -227,13 +325,11 @@ public class Program
                 {
                     throw new FormatException($"Неверный формат строки.");
                 }
-
-                // Извлекаем ФИО
+                
                 string secondName = parts[0];
                 string firstName = parts[1];
                 string surname = parts[2];
-
-                // Проверяем корректность времени
+                
                 string[] timeParts = parts[3].Split(':');
                 if (timeParts.Length != 2 ||
                     !int.TryParse(timeParts[0], out int hours) ||
@@ -254,8 +350,7 @@ public class Program
             }
         }
     }
-
-    // Обход слева направо
+    
     private static void LeftRight(Node node, List<string> result)
     {
         if (node == null) return;
@@ -294,7 +389,6 @@ public class Program
         }
     }
     
-    // Конец обхода
     public static void Main(string[] args)
     {
         string filePath = "C:\\Users\\Nikita\\Desktop\\My programms\\AVL-tree\\AVL_tree\\Output.txt";

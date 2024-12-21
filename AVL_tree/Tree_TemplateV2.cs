@@ -2,7 +2,7 @@ using System;
 
 namespace AVL_tree
 {
-    public class FIO
+    public class FIO // FIO class
     {
         public string SecondName { get; }
         public string FirstName { get; }
@@ -15,7 +15,7 @@ namespace AVL_tree
             Surname = surname;
         }
 
-        public int CompareTo(FIO another)
+        public int CompareTo(FIO another) // Comparing two keys
         {
             if (another == null)
                 return 1;
@@ -37,7 +37,7 @@ namespace AVL_tree
         }
     }
 
-    public class TimeClass
+    public class TimeClass // Time class
     {
         public int Hours { get; }
         public int Minutes { get; }
@@ -72,7 +72,7 @@ namespace AVL_tree
         }
     }
 
-    public class Key
+    public class Key // Key class
     {
         public FIO Name { get; }
         public TimeClass Time { get; }
@@ -101,10 +101,12 @@ namespace AVL_tree
         }
     }
 
-    public class Node
+    public class Node // Class of the Node of the tree
     {
         public Key Key;
+
         public List<int> Value;
+
         //public int Count;
         public Node Left;
         public Node Right;
@@ -113,7 +115,7 @@ namespace AVL_tree
         public Node(Key key, int value)
         {
             Key = key;
-            Value = new List<int> { value }; 
+            Value = new List<int> { value };
             //Count = 1;
             Left = null;
             Right = null;
@@ -121,7 +123,7 @@ namespace AVL_tree
         }
     }
 
-    public class Tree
+    public class Tree // Class of rhe tree
     {
         public Node Root;
 
@@ -130,6 +132,7 @@ namespace AVL_tree
             Root = null;
         }
 
+        // Methods for AVL tree from Nicolas Virt book
         public void Search(Key x, ref Node p, ref bool h, int value)
         {
             if (p == null)
@@ -216,6 +219,7 @@ namespace AVL_tree
 
                 p = p2;
             }
+
             p.Balance = 0;
         }
 
@@ -249,6 +253,7 @@ namespace AVL_tree
 
                 p = p2;
             }
+
             p.Balance = 0;
         }
 
@@ -307,10 +312,8 @@ namespace AVL_tree
                 h = true;
             }
         }
-        
-        // Печать дерева
-     
-        public void PrintTree()
+
+        public void PrintTree() // Method for printing a complete tree and also writing it in the Output file
         {
             string filePath = "C:\\Users\\Nikita\\Desktop\\My programms\\AVL-tree\\AVL_tree\\Output.txt";
             {
@@ -329,111 +332,114 @@ namespace AVL_tree
             }
         }
 
-        private void PrintSubTree(StreamWriter writer, Node node, string prefix, bool isLast)
+        private void
+            PrintSubTree(StreamWriter writer, Node node, string prefix, bool isLast) // Method for printing subtree
         {
             string filePath = "C:\\Users\\Nikita\\Desktop\\My programms\\AVL-tree\\AVL_tree\\Output.txt";
+
+            if (node == null)
+                return;
+
+            Console.Write(prefix);
+            writer.Write(prefix);
+
+            if (isLast)
+            {
+                Console.Write("└─");
+                writer.Write("└─");
+                prefix += "  ";
+            }
+            else
+            {
+                Console.Write("├─");
+                writer.Write("├─");
+                prefix += "│ ";
+            }
+
+            string values = node.Value != null && node.Value.Count > 0
+                ? $" [{string.Join(", ", node.Value)}]"
+                : " []";
+
+            Console.WriteLine($"{node.Key.Name.ToString() + " " + node.Key.Time.ToString()}{values}");
+            writer.WriteLine($"{node.Key.Name.ToString() + " " + node.Key.Time.ToString()}{values}");
+
+            if (node.Left != null || node.Right != null)
+            {
+                PrintSubTree(writer, node.Left, prefix, node.Right == null);
+                PrintSubTree(writer, node.Right, prefix, true);
+
+            }
+        }
+
+        public void
+            DeleteMinimalRight(ref Node current, Key userKey, int userValue,
+                ref bool h) // Method for deleting minimal el. from right subtree
+        {
+            if (current == null)
+            {
+                Console.WriteLine("Элемент не существует.");
+                return;
+            }
+
+            Node minNode = current.Right; // Switching to right subtree
+            if (minNode == null)
+            {
+                Console.WriteLine("Правое поддерево пустое.");
+                return;
+            }
+
+            while (minNode.Left != null)
+            {
+                minNode = minNode.Left;
+            }
+
+            if (minNode.Key == userKey && minNode.Value.Contains(userValue))
+            {
+                minNode.Value.Remove(userValue);
+
+                if (minNode.Value.Count == 0)
+                {
+                    Delete(minNode.Key, ref current, ref h);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Ключи / значения не совпадают.");
+            }
+        }
+
+        public bool FindElement(Node current, FIO targetName, TimeClass targetTime, int targetValue)
+        {
+            if (current == null)
+            {
+                return false;
+            }
             
-                if (node == null)
-                    return;
+            bool nameMatches = current.Key.Name.SecondName == targetName.SecondName &&
+                               current.Key.Name.FirstName == targetName.FirstName &&
+                               current.Key.Name.Surname == targetName.Surname;
 
-                Console.Write(prefix);
-                writer.Write(prefix);
-                
-                if (isLast)
-                {
-                    Console.Write("└─");
-                    writer.Write("└─");
-                    prefix += "  ";
-                }
-                else
-                {
-                    Console.Write("├─");
-                    writer.Write("├─");
-                    prefix += "│ ";
-                }
+            bool timeMatches = current.Key.Time.Hours == targetTime.Hours &&
+                               current.Key.Time.Minutes == targetTime.Minutes;
 
-                string values = node.Value != null && node.Value.Count > 0
-                    ? $" [{string.Join(", ", node.Value)}]"
-                    : " []";
-
-                Console.WriteLine($"{node.Key.Name.ToString() + " " + node.Key.Time.ToString()}{values}");
-                writer.WriteLine($"{node.Key.Name.ToString() + " " + node.Key.Time.ToString()}{values}");
-
-                if (node.Left != null || node.Right != null)
-                {
-                    PrintSubTree(writer, node.Left, prefix, node.Right == null);
-                    PrintSubTree(writer, node.Right, prefix, true);
-                
-            }
-        }
-        
-        public void DeleteIfMinRight(Key key, int value)
-        {
-            bool heightChanged = false;
-            Root = DeleteIfMinRight(Root, key, value, ref heightChanged);
-        }
-
-        private Node DeleteIfMinRight(Node node, Key key, int value, ref bool heightChanged)
-        {
-            if (node == null)
-                return null;
-
-            int comparison = key.CompareKeyTo(node.Key);
-            if (comparison < 0) // Ищем в левом поддереве
+            if (nameMatches && timeMatches)
             {
-                node.Left = DeleteIfMinRight(node.Left, key, value, ref heightChanged);
-                if (heightChanged)
-                    BalanceRight(ref node);
-            }
-            else if (comparison > 0) // Ищем в правом поддереве
-            {
-                node.Right = DeleteIfMinRight(node.Right, key, value, ref heightChanged);
-                if (heightChanged)
-                    BalanceLeft(ref node);
-            }
-            else // Если ключ найден
-            {
-                if (node.Value.Contains(value))
+                if (current.Value.Contains(targetValue))
                 {
-                    Node minRightNode = FindMin(node.Right);
-
-                    if (minRightNode != null && node.Key.CompareKeyTo(minRightNode.Key) == 0)
-                    {
-                        node.Right = DeleteMin(node.Right, ref heightChanged);
-                        if (heightChanged)
-                            BalanceLeft(ref node);
-                    }
+                    return true;
                 }
             }
-
-            return node;
-        }
-
-        private Node FindMin(Node node)
-        {
-            if (node == null)
-                return null;
-
-            while (node.Left != null)
-                node = node.Left;
-
-            return node;
-        }
-
-        private Node DeleteMin(Node node, ref bool heightChanged)
-        {
-            if (node.Left == null)
+            
+            if (current.Key.CompareKeyTo(new Key(targetName, targetTime)) > 0)
             {
-                heightChanged = true;
-                return node.Right;
+                return FindElement(current.Left, targetName, targetTime, targetValue);
             }
-
-            node.Left = DeleteMin(node.Left, ref heightChanged);
-
-            if (heightChanged)
-                BalanceRight(ref node);
-
-            return node;
+            else
+            {
+                return FindElement(current.Right, targetName, targetTime, targetValue);
+            }
         }
+
     }
 }
+    
